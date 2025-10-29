@@ -89,6 +89,12 @@ public class HomeActivity extends AppCompatActivity implements CTInboxListener, 
             startActivity(intent);
         });
 
+        Button coachmark_page = findViewById(R.id.coachmark_page);
+        coachmark_page.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, CoachMarkActivity.class);
+            startActivity(intent);
+        });
+
     }
 
     @Override

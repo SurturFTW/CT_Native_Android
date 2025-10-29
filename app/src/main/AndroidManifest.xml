@@ -41,10 +41,12 @@
             android:name=".HomeActivity"
             android:exported="false" />
 
-        <activity android:name=".CustomInboxActivity"/>
-
         <activity
             android:name=".SpotlightsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CoachMarkActivity"
             android:exported="false" />
 
         <service
