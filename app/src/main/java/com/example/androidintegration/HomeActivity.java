@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -29,9 +30,13 @@ public class HomeActivity extends AppCompatActivity implements CTInboxListener, 
     private Handler autoScrollHandler;
     private Runnable autoScrollRunnable;
     private List<String> imageUrls = new ArrayList<>();
+    private List<ProductModel> products = new ArrayList<>();
     private List<CTInboxMessage> inboxMessages = new ArrayList<>();
 
     private ViewPager2 carouselViewPager;
+    private RecyclerView amazonStyleRecyclerView;
+    private Button toggleDisplayModeButton;
+    private boolean isAmazonStyleDisplayed = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +44,8 @@ public class HomeActivity extends AppCompatActivity implements CTInboxListener, 
         setContentView(R.layout.activity_home);
 
         carouselViewPager = findViewById(R.id.viewPager);
+        amazonStyleRecyclerView = findViewById(R.id.amazonStyleRecyclerView);
+        toggleDisplayModeButton = findViewById(R.id.toggleDisplayModeButton);
 
         clevertapDefaultInstance = CleverTapAPI.getDefaultInstance(this);
 
@@ -47,6 +54,9 @@ public class HomeActivity extends AppCompatActivity implements CTInboxListener, 
             clevertapDefaultInstance.initializeInbox();
             clevertapDefaultInstance.setDisplayUnitListener(this);
         }
+
+        // Toggle display mode button
+        toggleDisplayModeButton.setOnClickListener(v -> toggleDisplayMode());
 
         // Custom Event
         Button customEvent = findViewById(R.id.customEvent);
@@ -138,6 +148,8 @@ public class HomeActivity extends AppCompatActivity implements CTInboxListener, 
                         String imageUrl = unit.getContents().get(i).getMedia();
                         if (imageUrl != null && !imageUrl.isEmpty()) {
                             imageUrls.add(imageUrl);
+                            // Create product models for Amazon-style display
+                            products.add(new ProductModel(imageUrl));
                             Log.d("Carousel", "Loaded Image URL: " + imageUrl);
                         }
                     }
@@ -147,10 +159,45 @@ public class HomeActivity extends AppCompatActivity implements CTInboxListener, 
             if (!imageUrls.isEmpty()) {
                 Log.d("Carousel", "Loaded image URLs: " + imageUrls);
                 setupViewPager(imageUrls);
+                setupAmazonStyleRecyclerView(products);
             } else {
                 Log.e("Carousel", "No valid image URLs found");
             }
         }
+    }
+
+    private void toggleDisplayMode() {
+        isAmazonStyleDisplayed = !isAmazonStyleDisplayed;
+        
+        if (isAmazonStyleDisplayed) {
+            // Show Amazon-style RecyclerView
+            carouselViewPager.setVisibility(View.GONE);
+            amazonStyleRecyclerView.setVisibility(View.VISIBLE);
+            toggleDisplayModeButton.setText("Switch to Carousel");
+            
+            // Stop auto-scroll for carousel
+            if (autoScrollHandler != null && autoScrollRunnable != null) {
+                autoScrollHandler.removeCallbacks(autoScrollRunnable);
+            }
+        } else {
+            // Show Carousel ViewPager
+            amazonStyleRecyclerView.setVisibility(View.GONE);
+            carouselViewPager.setVisibility(View.VISIBLE);
+            toggleDisplayModeButton.setText("Switch to Amazon Style");
+            
+            // Restart auto-scroll for carousel
+            if (!imageUrls.isEmpty()) {
+                setupAutoScroll(imageUrls.size());
+            }
+        }
+    }
+
+    private void setupAmazonStyleRecyclerView(List<ProductModel> products) {
+        // Set horizontal layout manager for side-by-side product display
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        amazonStyleRecyclerView.setLayoutManager(layoutManager);
+        CarouselAdapter amazonAdapter = new CarouselAdapter(this, products, true);
+        amazonStyleRecyclerView.setAdapter(amazonAdapter);
     }
 
     private void setupViewPager(List<String> imageUrls) {
