@@ -18,7 +18,6 @@ import androidx.core.content.ContextCompat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-//Clevertap SDK
 import com.clevertap.android.sdk.CleverTapAPI;
 
 public class MainActivity extends AppCompatActivity  {
